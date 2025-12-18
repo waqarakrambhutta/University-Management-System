@@ -14,5 +14,5 @@ urlpatterns = [
     path('courses/<int:course_id>/enroll/', enroll_student_view, name='enroll-student-view'),
     
     # Helper API for frontend (keep here or use main API? keep here for now)
-    path('api/grades/', submit_grade_api, name='submit-grade-api'),
+    # Helper API moved to courses/urls.py
 ]

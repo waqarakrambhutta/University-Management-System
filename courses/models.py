@@ -22,7 +22,7 @@ class Student(models.Model):
 class Course(models.Model):
     name = models.CharField(max_length=255)
     code = models.CharField(max_length=20, unique=True)
-    capacity = models.PositiveIntegerField(default=400)
+    capacity = models.PositiveIntegerField(default=400, validators=[MaxValueValidator(400)])
     description = models.TextField(blank=True)
 
     def __str__(self):

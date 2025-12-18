@@ -1,120 +1,136 @@
-{% extends 'courses/base.html' %}
+{% extends 'courses/base.html' %} 
 
-{% block title %}{{ course.code }} - UMS{% endblock %}
+{% block title %}{{ course.code }} - UMS{% endblock %} 
 
 {% block content %}
-<div class="flex-between" style="margin-bottom: 2rem;">
-    <div>
-        <h1>{{ course.code }} - {{ course.name }}</h1>
-        <p style="color: var(--text-light);">Capacity: {{ course.enrollments.count }} / {{ course.capacity }}</p>
-    </div>
-    <a href="{% url 'professor-dashboard' %}" class="btn-outline">Back to Dashboard</a>
+<div class="flex-between" style="margin-bottom: 2rem">
+  <div>
+    <h1>{{ course.code }} - {{ course.name }}</h1>
+    <p style="color: var(--text-light)">
+      Capacity: {{ course.enrollments.count }} / {{ course.capacity }}
+    </p>
+  </div>
+  <a href="{% url 'professor-dashboard' %}" class="btn-outline"
+    >Back to Dashboard</a
+  >
 </div>
 
-<div class="grid" style="margin-bottom: 2rem;">
-    <!-- Enrollment Card -->
-    <div class="card">
-        <h3>Enroll Student</h3>
-        <form method="post" action="{% url 'enroll-student-view' course.id %}">
-            {% csrf_token %}
-            <label for="student_id">Select Student</label>
-            <select name="student_id" id="student_id" required>
-                <option value="">-- Select Student --</option>
-                {% for student in all_students %}
-                    <option value="{{ student.id }}">{{ student.name }} ({{ student.student_id }})</option>
-                {% endfor %}
-            </select>
-            <button type="submit" style="width: 100%;">Enroll Student</button>
-        </form>
-    </div>
+<div class="grid" style="margin-bottom: 2rem">
+  <!-- Enrollment Card -->
+  <div class="card">
+    <h3>Enroll Student</h3>
+    <form method="post" action="{% url 'enroll-student-view' course.id %}">
+      {% csrf_token %}
+      <label for="student_id">Select Student</label>
+      <select name="student_id" id="student_id" required>
+        <option value="">-- Select Student --</option>
+        {% for student in all_students %}
+        <option value="{{ student.id }}">
+          {{ student.name }} ({{ student.student_id }})
+        </option>
+        {% endfor %}
+      </select>
+      <button type="submit" style="width: 100%">Enroll Student</button>
+    </form>
+  </div>
 </div>
 
 <div class="card">
-    <h3>Enrolled Students & Grades</h3>
-    {% if enrollments %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Student ID</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Enrolled At</th>
-                    <th>Grade</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for enrollment in enrollments %}
-                <tr>
-                    <td>{{ enrollment.student.student_id }}</td>
-                    <td>{{ enrollment.student.name }}</td>
-                    <td>{{ enrollment.student.email }}</td>
-                    <td>{{ enrollment.enrolled_at|date:"M d, Y" }}</td>
-                    <td>
-                        <input type="number" 
-                               step="0.01" 
-                               min="0" 
-                               max="100" 
-                               value="{{ enrollment.grade.grade|default:'' }}" 
-                               id="grade-input-{{ enrollment.id }}"
-                               style="margin-bottom: 0; width: 80px;">
-                    </td>
-                    <td>
-                        <button class="btn-outline" data-id="{{ enrollment.id }}" onclick="saveGrade(this.dataset.id)">Save</button>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p style="color: var(--text-light); text-align: center; padding: 2rem;">No students enrolled yet.</p>
-    {% endif %}
+  <h3>Enrolled Students & Grades</h3>
+  {% if enrollments %}
+  <table>
+    <thead>
+      <tr>
+        <th>Student ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Enrolled At</th>
+        <th>Grade</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for enrollment in enrollments %}
+      <tr>
+        <td>{{ enrollment.student.student_id }}</td>
+        <td>{{ enrollment.student.name }}</td>
+        <td>{{ enrollment.student.email }}</td>
+        <td>{{ enrollment.enrolled_at|date:"M d, Y" }}</td>
+        <td>
+          <input
+            type="number"
+            step="0.01"
+            min="0"
+            max="100"
+            value="{{ enrollment.grade.grade|default:'' }}"
+            id="grade-input-{{ enrollment.id }}"
+            style="margin-bottom: 0; width: 80px"
+          />
+        </td>
+        <td>
+          <button
+            class="btn-outline"
+            data-id="{{ enrollment.id }}"
+            onclick="saveGrade(this.dataset.id)"
+          >
+            Save
+          </button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="color: var(--text-light); text-align: center; padding: 2rem">
+    No students enrolled yet.
+  </p>
+  {% endif %}
 </div>
 
 <script>
-async function saveGrade(enrollmentId) {
+  async function saveGrade(enrollmentId) {
     const input = document.getElementById(`grade-input-${enrollmentId}`);
     const grade = input.value;
-    
+
     if (!grade) {
-        alert('Please enter a grade');
-        return;
+      alert("Please enter a grade");
+      return;
     }
 
     try {
-        const response = await fetch(`/api/grades/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body: JSON.stringify({
-                enrollment: enrollmentId,
-                grade: parseFloat(grade)
-            })
-        });
+      const response = await fetch(`/api/grades/submit/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": "{{ csrf_token }}",
+        },
+        body: JSON.stringify({
+          enrollment: enrollmentId,
+          grade: parseFloat(grade),
+        }),
+      });
 
-        const data = await response.json();
-        
-        if (response.ok) {
-            // Success
-            const toast = document.createElement('div');
-            toast.textContent = 'Grade saved successfully';
-            toast.style.cssText = `
+      const data = await response.json();
+
+      if (response.ok) {
+        // Success
+        const toast = document.createElement("div");
+        toast.textContent = "Grade saved successfully";
+        toast.style.cssText = `
                 position: fixed; bottom: 20px; right: 20px; 
                 background: #22c55e; color: white; padding: 1rem; 
                 border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
                 animation: fadein 0.3s;
             `;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
-        } else {
-             alert('Error saving grade: ' + JSON.stringify(data));
-        }
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+      } else {
+        alert("Error saving grade: " + JSON.stringify(data));
+      }
     } catch (error) {
-        console.error(error);
-        alert('Network error');
+      console.error(error);
+      alert("Network error");
     }
-}
+  }
 </script>
 {% endblock %}

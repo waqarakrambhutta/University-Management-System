@@ -13,6 +13,7 @@ router.register(r'courses', CourseViewSet)
 router.register(r'grades', GradeViewSet)
 
 urlpatterns = [
+    path('grades/submit/', submit_grade_api, name='submit-grade-api'),
     path('', include(router.urls)),
     path('enroll/', EnrollmentViewSet.as_view({'post': 'create'}), name='enroll-student'),
 ]

@@ -21,6 +21,7 @@ class StudentAdmin(admin.ModelAdmin):
 class CourseAdmin(admin.ModelAdmin):
     list_display = ('code', 'name', 'capacity')
     search_fields = ('code', 'name')
+    readonly_fields = ('capacity',)
 
 @admin.register(Enrollment)
 class EnrollmentAdmin(admin.ModelAdmin):
