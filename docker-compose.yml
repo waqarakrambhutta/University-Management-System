@@ -7,6 +7,7 @@ services:
       - .:/app
     ports:
       - "8000:8000"
-    command: python manage.py runserver 0.0.0.0:8000
+    # command removed to use Dockerfile CMD
+    # command: python manage.py runserver 0.0.0.0:8000
     # For now, we use SQLite which is in the volume.
     # If using Postgres, we would add a db service here.

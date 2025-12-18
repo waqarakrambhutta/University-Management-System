@@ -8,6 +8,7 @@ A robust, role-based University Management System built with Django and Django R
 
 - **Professor**: Can enroll students, submit grades, and view their assigned courses.
 - **Admin**: Full access to the system.
+- **Student**: Managed records (can be extended to authenticatable users).
 
 ### 2. Enrollment Management
 
@@ -80,11 +81,25 @@ A robust, role-based University Management System built with Django and Django R
 
 ### Docker Setup
 
-1. **Build and Run**
+1. **Navigate to project directory**
+
    ```bash
-   docker-compose up --build
+   cd ums
    ```
+
+2. **Build and Run**
+
+   ```bash
+   docker compose up --build
+   ```
+
    The application will be available at `http://localhost:8000/`.
+
+3. **Create Superuser (Docker)**
+   To create an admin account while the container is running:
+   ```bash
+   docker compose exec web python manage.py createsuperuser
+   ```
 
 ## Usage Guide
 
