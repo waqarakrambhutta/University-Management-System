@@ -1,0 +1,35 @@
+{% extends 'courses/base.html' %} {% block title %}Dashboard - UMS{% endblock %}
+{% block content %}
+<div class="flex-between" style="margin-bottom: 2rem">
+  <h1>My Courses</h1>
+  <a href="{% url 'student-create' %}" class="btn">Add New Student</a>
+</div>
+
+{% if courses %}
+<div class="grid">
+  {% for course in courses %}
+  <div class="card">
+    <div class="flex-between">
+      <h3>{{ course.code }}</h3>
+      <span style="font-size: 0.875rem; color: var(--text-light)"
+        >{{ course.enrollments.count }} / {{ course.capacity }} Students</span
+      >
+    </div>
+    <p style="color: var(--text-light); margin-bottom: 1.5rem">
+      {{ course.name }}
+    </p>
+    <a
+      href="{% url 'course-detail' course.id %}"
+      class="btn btn-outline"
+      style="width: 100%; text-align: center; display: block"
+      >Manage Course</a
+    >
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card" style="text-align: center; padding: 3rem">
+  <h3>No courses assigned</h3>
+  <p>You have not been assigned to any courses yet.</p>
+</div>
+{% endif %} {% endblock %}

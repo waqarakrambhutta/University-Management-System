@@ -1,0 +1,28 @@
+{% extends 'courses/base.html' %}
+
+{% block title %}Login - UMS{% endblock %}
+
+{% block content %}
+<div style="max-width: 400px; margin: 4rem auto;">
+    <div class="card">
+        <h2 style="text-align: center; margin-bottom: 1.5rem;">Professor Login</h2>
+        <form method="post">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+                <div class="message error">{{ form.non_field_errors.0 }}</div>
+            {% endif %}
+            
+            <label for="id_username">Username</label>
+            {{ form.username }}
+            
+            <label for="id_password">Password</label>
+            {{ form.password }}
+            
+            <button type="submit" style="width: 100%; margin-top: 1rem;">Sign In</button>
+        </form>
+    </div>
+    <div style="text-align: center; font-size: 0.875rem; color: var(--text-light);">
+        <p>Restricted Access - Authorized Personnel Only</p>
+    </div>
+</div>
+{% endblock %}

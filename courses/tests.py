@@ -4,8 +4,6 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from django.contrib.auth import get_user_model
 from .models import Course, Student, Enrollment, Grade, GradeAudit
-from threading import Thread
-import time
 
 User = get_user_model()
 
@@ -14,17 +12,11 @@ class CourseTests(TestCase):
         self.client = APIClient()
         self.admin = User.objects.create_superuser('admin', 'admin@example.com', 'pass')
         self.professor = User.objects.create_user('prof', 'prof@example.com', 'pass', role=User.Role.PROFESSOR)
-        # Note: Students are now managed records, not Users with login, as per simplified requirements.
-        # But if we were to test permissions, we'd use a user that is NOT a professor/admin.
-        self.regular_user = User.objects.create_user('student_user', 'student@example.com', 'pass', role='STUDENT') # Using default or other role if any
-
+        self.regular_user = User.objects.create_user('student_user', 'student@example.com', 'pass', role='STUDENT')
         self.student_record = Student.objects.create(name="John Doe", email="john@example.com", student_id="S123")
         self.course = Course.objects.create(name="CS101", code="CS101", capacity=1)
 
     def test_enrollment_permission(self):
-        # Admin can enroll? No, updated reqs said Professors enroll. Code says IsProfessor.
-        # Let's check views.py: EnrollmentViewSet has permission_classes = [IsProfessor]
-        
         url = reverse('enroll-student')
         data = {'student': self.student_record.id, 'course': self.course.id}
 
@@ -32,7 +24,7 @@ class CourseTests(TestCase):
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        # Regular user (if we assume they exist as users)
+        # Regular user
         self.client.force_authenticate(user=self.regular_user)
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -94,34 +86,28 @@ class CourseTests(TestCase):
         self.assertEqual(latest_audit.new_grade, 90.0)
 
     def test_race_condition(self):
-        # We need to verify that we cannot exceed capacity even with potential race conditions.
-        # However, standard Django TransactionTestCase/TestCase does not easily support multithreaded database access 
-        # (each thread gets a new connection which might not see the transaction of the test).
-        # We can simulate the logic via mocking or just trust select_for_update works as per DB guarantees.
-        # But here is a simplistic attempt using a separate script logic approach or just testing the logic:
-        
-        # NOTE: A real threaded test with SQLite in-memory DB is tricky because of connection sharing.
-        # Instead, we will simulate the "check then act" gap by verifying logic constraints.
-        
-        # Set capacity to 1
         course = Course.objects.create(name="RaceCourse", code="RC101", capacity=1)
         student1 = Student.objects.create(name="S1", email="s1@e.com", student_id="S1")
         student2 = Student.objects.create(name="S2", email="s2@e.com", student_id="S2")
         
         self.client.force_authenticate(user=self.professor)
         
-        # We can't truly test race conditions in a simple unit test suite without a more complex setup 
-        # (e.g. TransactionTestCase with a real DB allowing concurrent connections).
-        # We will assume select_for_update() is correct. 
-        # But we can double check logic:
-        
-        # Enroll 1
         url = reverse('enroll-student')
         self.client.post(url, {'student': student1.id, 'course': course.id})
         
-        # Enroll 2 - Should fail
         response = self.client.post(url, {'student': student2.id, 'course': course.id})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(Enrollment.objects.filter(course=course).count(), 1)
 
-
+    def test_frontend_pages_render(self):
+        self.client.force_login(self.professor)
+        
+        # Test Student Create Page
+        url_create = reverse('student-create')
+        response = self.client.get(url_create)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Failed to render student-create: {response.content}")
+        
+        # Test Course Detail Page
+        url_detail = reverse('course-detail', args=[self.course.id])
+        response = self.client.get(url_detail)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Failed to render course-detail: {response.content}")
